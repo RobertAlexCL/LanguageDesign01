@@ -19,6 +19,17 @@ class Thompson():
         self.nextSymbol = 0
         self.parseRegex()
 
+    def parseRegex(self):
+        i = 0
+        regex = ''
+        while i < len(self.regex):
+            regex += self.regex[i]
+            if self.regex[i] !="(" and self.regex[i] != "|":
+                if i + 1< len(self.regex) and (self.regex[i + 1].isalnum() or self.regex[i + 1] == '(') :
+                    regex += "."
+            i += 1
+        self.regex = regex
+
     def infix_to_postfix(self, regex):
         # Dict to the precedence of the operators
         precedence = {'*': 3, '+': 3, '?': 3, '.': 2, '|': 1, '(': 0}
@@ -64,19 +75,8 @@ class Thompson():
         # Return the postfix expression
         return postfix
 
-    def parseRegex(self):
-        i = 0
-        regex = ''
-        while i < len(self.regex):
-            regex += self.regex[i]
-            if self.regex[i] !="(" and self.regex[i] != "|":
-                if i + 1< len(self.regex) and (self.regex[i + 1].isalnum() or self.regex[i + 1] == '(') :
-                    regex += "."
-            i += 1
-        print("Possible postfix ===>", regex)
-        self.regex = regex
         
-    # Functions to create nfaStack from regex
+    # Functions to create nfaStack from postfix
     def getSymbol(self):
         to_return = self.nextSymbol
         self.nextSymbol += 1
@@ -157,7 +157,7 @@ class Thompson():
         if op == '+': return self.concatNFA(a,self.kleenNFA(a))
         if op == '?': return self.orNFA(a,self.symbolNFA(epsilon))
     
-    def createNfafromRegex(self):
+    def createNfafromPostfix(self):
 
         # stack to store the NFA's
         nfaStack = []
@@ -167,20 +167,20 @@ class Thompson():
 
         i = 0
 
-        regex = self.regex
-        while i < len(regex):
+        postfix = self.regex
+        while i < len(postfix):
             # ignore empty spaces
-            if regex[i] == ' ':
+            if postfix[i] == ' ':
                 i += 1
                 continue
             
-            elif regex[i] == '(':
-                operators.append(regex[i])
+            elif postfix[i] == '(':
+                operators.append(postfix[i])
             
-            elif regex[i].isalnum():
-                nfaStack.append(self.symbolNFA(regex[i]))
+            elif postfix[i].isalnum():
+                nfaStack.append(self.symbolNFA(postfix[i]))
             
-            elif regex[i] == ')':
+            elif postfix[i] == ')':
                 while len(operators) !=0 and operators[-1] != '(':
                     op = operators.pop()
                     if op == "*" or op =="+" or op =="?":
@@ -192,7 +192,7 @@ class Thompson():
                         nfaStack.append(self.applyOp(nfa1, op, nfa2))
                 operators.pop()
             else:
-                while (len(operators) != 0 and self.precedence(operators[-1]) >= self.precedence(regex[i])):
+                while (len(operators) != 0 and self.precedence(operators[-1]) >= self.precedence(postfix[i])):
                     op = operators.pop()
                     if op == "*"or op =="+" or op =="?":
                         nfa1 = nfaStack.pop()
@@ -201,7 +201,7 @@ class Thompson():
                         nfa2 = nfaStack.pop()
                         nfa1 = nfaStack.pop()
                         nfaStack.append(self.applyOp(nfa1, op, nfa2))
-                operators.append(regex[i])
+                operators.append(postfix[i])
             i +=1
         while len(operators) != 0:
             op = operators.pop()

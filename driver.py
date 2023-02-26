@@ -20,7 +20,7 @@ while wantsToContinue and regex != "exit":
             thompson = Thompson(regex)
             postfix = thompson.infix_to_postfix(regex)
             print("Postfix: ", postfix)
-            thompsonNFA = thompson.createNfafromRegex()
+            thompsonNFA = thompson.createNfafromPostfix()
             thompsonNFA.show()
             thompsonNFA.render("NFA")
         except:
